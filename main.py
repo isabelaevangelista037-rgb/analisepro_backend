@@ -45,6 +45,11 @@ def db():
 @app.post("/trades")
 def criar_trade(trade: TradeIn):
     try:
+       d = calcular_dashboard()
+if d["meta_batida"]:
+    raise HTTPException(status_code=403, detail="META BATIDA: pare de operar hoje.")
+if d["stop_batido"]:
+    raise HTTPException(status_code=403, detail="STOP LOSS BATIDO: pare de operar hoje.") 
         sql = text("""
             INSERT INTO trades (ativo, resultado, valor)
             VALUES (:ativo, :resultado, :valor)
@@ -75,7 +80,7 @@ def listar_trades():
 
         return {"total": len(rows), "items": [dict(r) for r in rows]}
     except SQLAlchemyError as e:
-        return {"ok": False, "erro": str(e)}
+        return {"ok": False, "erro": str(e)} 
         # =============================
 # SETTINGS (META E STOP)
 # =============================
