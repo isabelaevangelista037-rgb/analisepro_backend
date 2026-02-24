@@ -3,3 +3,8 @@ uvicorn[standard]
 gunicorn
 sqlalchemy
 psycopg2-binary
+fastapi
+uvicorn
+gunicorn
+sqlalchemy
+psycopg2-binary
