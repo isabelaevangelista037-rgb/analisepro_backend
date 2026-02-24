@@ -1,42 +1,41 @@
-version: "3.9"
-
 services:
-
   banco:
     image: postgres:15
-    container_name: analisepro_banco
+    container_name: analysepro_banco
     restart: always
     environment:
-      POSTGRES_DB: analisepro
-      POSTGRES_USER: analisepro
+      POSTGRES_USER: analysepro
       POSTGRES_PASSWORD: analise123
+      POSTGRES_DB: analysepro
     ports:
       - "5432:5432"
 
   backend:
     build: .
-    container_name: analisepro_backend
+    container_name: analysepro_backend
     restart: always
     depends_on:
       - banco
     environment:
-      DATABASE_URL: postgresql://analisepro:analise123@banco:5432/analisepro
+      DATABASE_URL: postgresql://analysepro:analise123@banco:5432/analysepro
     ports:
       - "8000:8000"
 
   adminer:
     image: adminer:latest
-    container_name: analisepro_adminer
+    container_name: analysepro_adminer
     restart: always
     depends_on:
       - banco
     ports:
       - "8081:8080"
+
   frontend:
-   build:
-     context: ./front-end
-   container_name: analisepro_frontend
-   ports:
-     - "3000:80"
-  depends_on:
-    - backend 
+    build:
+      context: ./front-end
+    container_name: analysepro_frontend
+    restart: always
+    depends_on:
+      - backend
+    ports:
+      - "3000:80"
