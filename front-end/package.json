@@ -1,5 +1,0 @@
-cd SEU_REPO
-mkdir -p front-end
-cd front-end
-npm create vite@latest . -- --template react
-npm install
