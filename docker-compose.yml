@@ -32,11 +32,11 @@ services:
       - banco
     ports:
       - "8081:8080"
- frontend:
+  frontend:
    build:
-    context: ./front-end
-  container_name: analisepro_frontend
-  ports:
-    - "3000:80"
+     context: ./front-end
+   container_name: analisepro_frontend
+   ports:
+     - "3000:80"
   depends_on:
     - backend 
