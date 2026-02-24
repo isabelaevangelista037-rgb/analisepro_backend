@@ -198,7 +198,3 @@ def update_settings(payload: SettingsIn):
 def dashboard():
     return calcular_dashboard()
     
-      - "3000:3000"
-    depends_on:
-      - analisepro_backend
-    
