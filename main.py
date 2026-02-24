@@ -214,3 +214,76 @@ def dashboard():
         "stop_batido":stop_batido
 
     }
+    from fastapi import HTTPException
+
+
+def calcular_dashboard():
+    conn = get_conn()
+    cur = conn.cursor()
+
+    # CONFIG
+    cur.execute("""
+        SELECT meta_dia, stop_loss_dia
+        FROM trader_settings
+        ORDER BY id DESC
+        LIMIT 1
+    """)
+    config = cur.fetchone()
+
+    meta = float(config[0])
+    stop = float(config[1])
+
+    # TRADES HOJE
+    cur.execute("""
+        SELECT resultado, valor
+        FROM trades
+        WHERE DATE(created_at)=CURRENT_DATE
+    """)
+    trades = cur.fetchall()
+
+    lucro = 0
+    wins = 0
+    loss = 0
+
+    for t in trades:
+        resultado = (t[0] or "").lower()
+        valor = float(t[1])
+
+        if resultado == "win":
+            lucro += valor
+            wins += 1
+        elif resultado == "loss":
+            lucro -= valor
+            loss += 1
+
+    meta_batida = lucro >= meta
+    stop_batido = lucro <= -stop
+
+    cur.close()
+    conn.close()
+
+    return {
+        "lucro_dia": lucro,
+        "wins": wins,
+        "loss": loss,
+        "meta": meta,
+        "stop_loss": stop,
+        "meta_batida": meta_batida,
+        "stop_batido": stop_batido
+    }
+
+
+@app.get("/status")
+def status():
+    d = calcular_dashboard()
+
+    acao = "CONTINUAR"
+    if d["meta_batida"]:
+        acao = "PARAR_META"
+    if d["stop_batido"]:
+        acao = "PARAR_STOP"
+
+    return {
+        "acao": acao,
+        **d
+    }
