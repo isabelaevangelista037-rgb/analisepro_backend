@@ -197,12 +197,7 @@ def update_settings(payload: SettingsIn):
 @app.get("/dashboard")
 def dashboard():
     return calcular_dashboard()
-    frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    container_name: analisepro_frontend
-    ports:
+    
       - "3000:3000"
     depends_on:
       - analisepro_backend
