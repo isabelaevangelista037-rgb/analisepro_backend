@@ -132,3 +132,85 @@ def update_settings(meta_dia: float, stop_loss_dia: float):
     conn.close()
 
     return {"ok":True}
+    from datetime import date
+
+
+@app.get("/dashboard")
+def dashboard():
+
+    conn = get_conn()
+    cur = conn.cursor()
+
+
+    # CONFIG
+    cur.execute("""
+        SELECT meta_dia, stop_loss_dia
+        FROM trader_settings
+        ORDER BY id DESC
+        LIMIT 1
+    """)
+
+    config = cur.fetchone()
+
+    meta = float(config[0])
+    stop = float(config[1])
+
+
+    # TRADES HOJE
+    cur.execute("""
+        SELECT resultado, valor
+        FROM trades
+        WHERE DATE(created_at)=CURRENT_DATE
+    """)
+
+    trades = cur.fetchall()
+
+
+    lucro = 0
+    wins = 0
+    loss = 0
+
+
+    for t in trades:
+
+        resultado = t[0]
+        valor = float(t[1])
+
+        if resultado.lower() == "win":
+
+            lucro += valor
+            wins += 1
+
+        elif resultado.lower()=="loss":
+
+            lucro -= valor
+            loss += 1
+
+
+
+    meta_batida = lucro >= meta
+
+    stop_batido = lucro <= -stop
+
+
+    cur.close()
+    conn.close()
+
+
+    return {
+
+        "lucro_dia": lucro,
+
+        "wins":wins,
+
+        "loss":loss,
+
+        "meta":meta,
+
+        "stop_loss":stop,
+
+        "meta_batida":meta_batida,
+
+        "stop_batido":stop_batido
+
+    }
