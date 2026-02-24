@@ -76,3 +76,59 @@ def listar_trades():
         return {"total": len(rows), "items": [dict(r) for r in rows]}
     except SQLAlchemyError as e:
         return {"ok": False, "erro": str(e)}
+        # =============================
+# SETTINGS (META E STOP)
+# =============================
+
+@app.get("/settings")
+def get_settings():
+
+    conn = get_conn()
+    cur = conn.cursor()
+
+    cur.execute("""
+        SELECT meta_dia, stop_loss_dia
+        FROM trader_settings
+        ORDER BY id DESC
+        LIMIT 1
+    """)
+
+    row = cur.fetchone()
+
+    cur.close()
+    conn.close()
+
+    if not row:
+        return {"meta_dia":0,"stop_loss_dia":0}
+
+    return {
+        "meta_dia": float(row[0]),
+        "stop_loss_dia": float(row[1])
+    }
+
+
+
+@app.put("/settings")
+def update_settings(meta_dia: float, stop_loss_dia: float):
+
+    conn = get_conn()
+    cur = conn.cursor()
+
+    cur.execute("""
+        UPDATE trader_settings
+        SET meta_dia=%s,
+            stop_loss_dia=%s
+        WHERE id = (
+            SELECT id
+            FROM trader_settings
+            ORDER BY id DESC
+            LIMIT 1
+        )
+    """,(meta_dia,stop_loss_dia))
+
+    conn.commit()
+
+    cur.close()
+    conn.close()
+
+    return {"ok":True}
