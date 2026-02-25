@@ -6,7 +6,7 @@ from sqlalchemy.exc import SQLAlchemyError
 app = FastAPI()
 
 # ⚠️ Ajuste se necessário (senha/host/porta)
-DATABASE_URL = "postgresql://analisepro:analise123@banco:5432/analisepro"
+DATABASE_URL = "postgresql://analisarpro:analisar123@banco:5432/analisarpro"
 
 engine = create_engine(DATABASE_URL, pool_pre_ping=True)
 
