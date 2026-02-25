@@ -208,4 +208,51 @@ def update_settings(payload: SettingsIn):
 @app.get("/dashboard")
 def dashboard():
     return calcular_dashboard()
+   from fastapi import FastAPI, HTTPException
+from sqlalchemy import create_engine, text
+from sqlalchemy.exc import SQLAlchemyError
+
+app = FastAPI()
+
+# ... seu DATABASE_URL e engine já devem existir acima ...
+
+@app.get("/dashboard")
+def dashboard():
+    try:
+        with engine.connect() as conn:
+            # total de trades
+            total = conn.execute(text("SELECT COUNT(*) FROM trades")).scalar() or 0
+
+            # ganhos e perdas
+            ganhos = conn.execute(text("""
+                SELECT COUNT(*) FROM trades
+                WHERE resultado IN ('ganhar','vitória','vitoria','win')
+            """)).scalar() or 0
+
+            perdas = conn.execute(text("""
+                SELECT COUNT(*) FROM trades
+                WHERE resultado IN ('perder','derrota','loss')
+            """)).scalar() or 0
+
+            # soma dos valores (ganhos - perdas)
+            saldo = conn.execute(text("""
+                SELECT COALESCE(SUM(
+                    CASE
+                        WHEN resultado IN ('ganhar','vitória','vitoria','win') THEN valor
+                        WHEN resultado IN ('perder','derrota','loss') THEN -valor
+                        ELSE 0
+                    END
+                ), 0) as saldo
+                FROM trades
+            """)).scalar() or 0
+
+        return {
+            "total": int(total),
+            "ganhos": int(ganhos),
+            "perdas": int(perdas),
+            "saldo": float(saldo)
+        }
+
+    except SQLAlchemyError as e:
+        raise HTTPException(status_code=500, detail=str(e)) 
     
