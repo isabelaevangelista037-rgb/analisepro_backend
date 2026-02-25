@@ -4,7 +4,18 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.exc import SQLAlchemyError
 
 app = FastAPI()
+from fastapi.middleware.cors import CORSMiddleware
 
+aplicativo.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://72.61.57.15:3000",
+        "http://localhost:3000",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 # ⚠️ Ajuste se necessário (senha/host/porta)
 DATABASE_URL = "postgresql://analisarpro:analisar123@banco:5432/analisarpro"
 
