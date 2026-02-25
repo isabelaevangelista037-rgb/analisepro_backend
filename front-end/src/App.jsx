@@ -5,10 +5,24 @@ export default function App() {
 const [trades,setTrades] = useState([]);
 const [ativo,setAtivo] = useState("");
 const [resultado,setResultado] = useState("ganhar");
-const [valor,setValor] = useState({ total: 0, perdas: 0, saldo:
-  0 });
+const [valor,setValor] = useState(" ");
+const [dashboard,setDashboard] = useState({
+ total:0,
+ ganhos:0,
+ perdas:0,
+ saldo:0
+});
 
 async function carregarTrades(){
+async function carregarDashboard(){
+
+ const res = await fetch("/api/dashboard");
+
+ const data = await res.json();
+
+ setDashboard(data);
+
+}  
 
 const res = await fetch("/api/trades");
 
@@ -20,7 +34,9 @@ setTrades(data.items || []);
 
 useEffect(()=>{
 
-carregarTrades();
+ carregarTrades();
+
+ carregarDashboard();
 
 },[]);
 
