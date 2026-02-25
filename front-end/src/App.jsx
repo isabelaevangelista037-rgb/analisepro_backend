@@ -1,135 +1,199 @@
 import React, { useEffect, useState } from "react";
 
 export default function App() {
+  const [trades, setTrades] = useState([]);
+  const [ativo, setAtivo] = useState("");
+  const [resultado, setResultado] = useState("ganhar");
+  const [valor, setValor] = useState("");
 
-const [trades,setTrades] = useState([]);
-const [ativo,setAtivo] = useState("");
-const [resultado,setResultado] = useState("ganhar");
-const [valor,setValor] = useState("");
-const [dashboard,setDashboard] = useState({
- total:0,
- ganhos:0,
- perdas:0,
- saldo:0
-});
- 
-async function carregarDashboard(){
- 
- const res = await fetch("http://72.61.57.15:8000/dashboard");
- const data = await res.json();
- 
- setDashboard(data);
-}
- 
-async function carregarTrades(){ 
- 
-const res = await fetch("http://72.61.57.15:8000/trades");
-const data = await res.json();
- 
-setTrades(data.items || []);
-}
+  const [dashboard, setDashboard] = useState({
+    total: 0,
+    ganhos: 0,
+    perdas: 0,
+    saldo: 0,
+  });
 
-useEffect(()=>{
- carregarTrades();
- carregarDashboard();
-},[]);
+  const [loading, setLoading] = useState(false);
+  const [erro, setErro] = useState("");
 
-async function criarTrade(){
-await fetch("http://72.61.57.15:8000/trades",{
-method:"POST",
-headers:{
-"Content-Type":"application/json"
-},
+  const API = "http://72.61.57.15:8000";
 
-body:JSON.stringify({
+  async function carregarTrades() {
+    try {
+      setErro("");
+      const res = await fetch(`${API}/trades`);
 
-ativo,
+      if (!res.ok) {
+        const txt = await res.text();
+        throw new Error(`Falha ao carregar trades (${res.status}): ${txt}`);
+      }
 
-resultado,
+      const data = await res.json();
+      setTrades(Array.isArray(data?.items) ? data.items : []);
+    } catch (e) {
+      setErro(String(e.message || e));
+      setTrades([]);
+    }
+  }
 
-valor:parseFloat(valor)
+  async function carregarDashboard() {
+    try {
+      setErro("");
+      const res = await fetch(`${API}/dashboard`);
 
-})
+      if (!res.ok) {
+        const txt = await res.text();
+        throw new Error(`Falha ao carregar dashboard (${res.status}): ${txt}`);
+      }
 
-});
+      const data = await res.json();
 
-setAtivo("");
-setValor("");
+      // garante formato
+      setDashboard({
+        total: Number(data?.total ?? 0),
+        ganhos: Number(data?.ganhos ?? 0),
+        perdas: Number(data?.perdas ?? 0),
+        saldo: Number(data?.saldo ?? 0),
+      });
+    } catch (e) {
+      setErro(String(e.message || e));
+      setDashboard({ total: 0, ganhos: 0, perdas: 0, saldo: 0 });
+    }
+  }
 
-carregarTrades();
+  async function atualizarTudo() {
+    setLoading(true);
+    await Promise.all([carregarTrades(), carregarDashboard()]);
+    setLoading(false);
+  }
 
-}
+  async function criarTrade() {
+    try {
+      setErro("");
 
-return(
+      if (!ativo.trim()) {
+        setErro("Preencha o campo Ativo.");
+        return;
+      }
 
-<div style={{padding:"20px"}}>
+      const valorNum = Number(valor);
+      if (!Number.isFinite(valorNum) || valorNum <= 0) {
+        setErro("Digite um valor válido (ex: 10).");
+        return;
+      }
 
-<h1>📊 Análise Pro</h1>
+      const res = await fetch(`${API}/trades`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ativo: ativo.trim(),
+          resultado,
+          valor: valorNum,
+        }),
+      });
 
-<h2>Nova Trade</h2>
+      if (!res.ok) {
+        const txt = await res.text();
+        throw new Error(`Falha ao salvar trade (${res.status}): ${txt}`);
+      }
 
-<input
-placeholder="Ativo"
-value={ativo}
-onChange={e=>setAtivo(e.target.value)}
-/>
+      // limpa inputs
+      setAtivo("");
+      setValor("");
+      setResultado("ganhar");
 
-<select
+      // atualiza lista + dashboard
+      await atualizarTudo();
+    } catch (e) {
+      setErro(String(e.message || e));
+    }
+  }
 
-value={resultado}
+  useEffect(() => {
+    atualizarTudo();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-onChange={e=>setResultado(e.target.value)}
+  return (
+    <div style={{ padding: 20, fontFamily: "Arial, sans-serif" }}>
+      <h1>📊 Análise Pro</h1>
 
->
+      <div style={{ marginBottom: 15 }}>
+        <h2>Dashboard</h2>
+        <div style={{ display: "flex", gap: 20, flexWrap: "wrap" }}>
+          <div><strong>Total:</strong> {dashboard.total}</div>
+          <div><strong>Ganhos:</strong> {dashboard.ganhos}</div>
+          <div><strong>Perdas:</strong> {dashboard.perdas}</div>
+          <div><strong>Saldo:</strong> {dashboard.saldo}</div>
+        </div>
+      </div>
 
-<option value="ganhar">Ganhar</option>
+      <hr />
 
-<option value="perder">Perder</option>
+      <h2>Nova Trade</h2>
 
-</select>
+      <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
+        <input
+          placeholder="Ativo (ex: EURUSD)"
+          value={ativo}
+          onChange={(e) => setAtivo(e.target.value)}
+          style={{ padding: 8, minWidth: 180 }}
+        />
 
-<input
+        <select
+          value={resultado}
+          onChange={(e) => setResultado(e.target.value)}
+          style={{ padding: 8 }}
+        >
+          <option value="ganhar">Ganhar</option>
+          <option value="perder">Perder</option>
+        </select>
 
-placeholder="Valor"
+        <input
+          placeholder="Valor (ex: 10)"
+          value={valor}
+          onChange={(e) => setValor(e.target.value)}
+          style={{ padding: 8, width: 140 }}
+        />
 
-value={valor}
+        <button
+          onClick={criarTrade}
+          style={{ padding: "8px 14px", cursor: "pointer" }}
+          disabled={loading}
+        >
+          {loading ? "Salvando..." : "Salvar Trade"}
+        </button>
+      </div>
 
-onChange={e=>setValor(e.target.value)}
+      {erro ? (
+        <div style={{ marginTop: 10, color: "crimson" }}>
+          <strong>Erro:</strong> {erro}
+        </div>
+      ) : null}
 
-/>
+      <hr />
 
-<button onClick={criarTrade}>
+      <h2>Trades</h2>
 
-Salvar Trade
+      <button
+        onClick={atualizarTudo}
+        style={{ padding: "8px 14px", cursor: "pointer" }}
+        disabled={loading}
+      >
+        {loading ? "Atualizando..." : "Atualizar"}
+      </button>
 
-</button>
-
-<hr/>
-
-<h2>Trades</h2>
-
-<button onClick={carregarTrades}>
-
-Atualizar
-
-</button>
-
-<ul>
-
-{trades.map(t=>(
-
-<li key={t.id}>
-
-{t.ativo} — {t.resultado} — R$ {t.valor}
-
-</li>
-
-))}
-
-</ul>
-
-</div>
-
-);
-
+      <ul style={{ marginTop: 10 }}>
+        {trades.length === 0 ? (
+          <li>Nenhuma trade cadastrada.</li>
+        ) : (
+          trades.map((t) => (
+            <li key={t.id}>
+              {t.ativo} — {t.resultado} — R$ {t.valor}
+            </li>
+          ))
+        )}
+      </ul>
+    </div>
+  );
 }
