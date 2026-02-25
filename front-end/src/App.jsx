@@ -9,7 +9,7 @@ const [valor,setValor] = useState("");
 
 async function carregarTrades(){
 
-const res = await fetch("/api/trades");
+const res = await fetch("http://72.61.57.15:8000/trades");
 
 const data = await res.json();
 
@@ -26,7 +26,7 @@ carregarTrades();
 
 async function criarTrade(){
 
-await fetch("/api/trades",{
+await fetch("http//72.61.57.15:8000/trades",{
 
 method:"POST",
 
