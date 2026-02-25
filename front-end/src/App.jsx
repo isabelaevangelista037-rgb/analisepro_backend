@@ -5,7 +5,8 @@ export default function App() {
 const [trades,setTrades] = useState([]);
 const [ativo,setAtivo] = useState("");
 const [resultado,setResultado] = useState("ganhar");
-const [valor,setValor] = useState("");
+const [valor,setValor] = useState({ total: 0, perdas: 0, saldo:
+  0 });
 
 async function carregarTrades(){
 
