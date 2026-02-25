@@ -14,14 +14,18 @@ const [dashboard,setDashboard] = useState({
 });
  
 async function carregarDashboard(){
+ 
  const res = await fetch("http://72.61.57.15:8000/dashboard");
  const data = await res.json();
+ 
  setDashboard(data);
 }
  
-async function carregarTrades(){  
+async function carregarTrades(){ 
+ 
 const res = await fetch("http://72.61.57.15:8000/trades");
 const data = await res.json();
+ 
 setTrades(data.items || []);
 }
 
