@@ -1,41 +1,45 @@
 services:
+
   banco:
     image: postgres:15
-    container_name: analysepro_banco
+    container_name: analisarpro_banco
     restart: always
     environment:
-      POSTGRES_USER: analysepro
-      POSTGRES_PASSWORD: analise123
-      POSTGRES_DB: analysepro
+      POSTGRES_USER: analisarpro
+      POSTGRES_PASSWORD: analisar123
+      POSTGRES_DB: analisarpro
     ports:
       - "5432:5432"
 
   backend:
     build: .
-    container_name: analysepro_backend
+    container_name: analisar_backend
     restart: always
     depends_on:
-      - banco
+      banco:
+        condition: service_started
     environment:
-      DATABASE_URL: postgresql://analysepro:analise123@banco:5432/analysepro
+      DATABASE_URL: postgresql://analisarpro:analisar123@banco:5432/analisarpro
     ports:
       - "8000:8000"
 
-  adminer:
+  administrador:
     image: adminer:latest
-    container_name: analysepro_adminer
+    container_name: analisarpro_adminer
     restart: always
     depends_on:
-      - banco
+      banco:
+        condition: service_started
     ports:
       - "8081:8080"
 
   frontend:
     build:
       context: ./front-end
-    container_name: analysepro_frontend
+    container_name: analisarpro_frontend
     restart: always
     depends_on:
-      - backend
+      backend:
+        condition: service_started
     ports:
       - "3000:80"
