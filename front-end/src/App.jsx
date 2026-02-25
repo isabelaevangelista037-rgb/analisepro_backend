@@ -14,6 +14,7 @@ const [dashboard,setDashboard] = useState({
 });
 
 async function carregarTrades(){
+ 
 async function carregarDashboard(){
 
  const res = await fetch("/api/dashboard");
