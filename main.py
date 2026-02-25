@@ -6,7 +6,7 @@ from sqlalchemy.exc import SQLAlchemyError
 app = FastAPI()
 from fastapi.middleware.cors import CORSMiddleware
 
-aplicativo.add_middleware(
+app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://72.61.57.15:3000",
