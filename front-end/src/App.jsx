@@ -31,7 +31,7 @@ useEffect(()=>{
 },[]);
 
 async function criarTrade(){
-await fetch("/api/trades",{
+await fetch("http://72.61.57.15:8000/trades",{
 method:"POST",
 headers:{
 "Content-Type":"application/json"
