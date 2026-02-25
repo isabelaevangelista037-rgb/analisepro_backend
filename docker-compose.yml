@@ -31,7 +31,7 @@ services:
       banco:
         condition: service_started
     ports:
-      - "8081:8080"
+      - "8085:8080"
 
   frontend:
     build:
